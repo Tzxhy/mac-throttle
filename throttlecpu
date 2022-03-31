@@ -1,0 +1,76 @@
+#!/bin/bash
+
+help() {
+	if [ "$1" == "-h" ]
+		then
+			echo -e "This tool helps you throttle the cpu usage of software which may slow down your mac.\n"
+			echo -e "Example: $2 VShieldScanManager 1\n"
+			echo -e "Will throttle the max cpu usage of VShieldScanManager to 1%\n"
+			exit
+	fi
+}
+
+help $1 $0
+
+checkBinary() {
+	HAS_CPUTHROTTLE=$(which cputhrottle)
+	HAS_CPUTHROTTLE=$?
+	if [ $HAS_CPUTHROTTLE != 0 ]
+		then
+			echo "No cputhrottle binary found. Downloading..."
+			DOWN_DIR=/tmp/cputhrottle
+			DOWN_NAME=cputhrottle.gz
+			BINARY_NAME=cputhrottle
+			if [ -e $DOWN_DIR ]
+				then
+					rm -r $DOWN_DIR
+			fi
+			mkdir $DOWN_DIR
+
+			curl --connect-timeout 3 -s "http://www.willnolan.com/cputhrottle/cputhrottle.gz" --output ${DOWN_DIR}/${DOWN_NAME}
+			if [ $? != 0 ]
+				then
+					echo -e "Download failed.\nPlease download http://www.willnolan.com/cputhrottle/cputhrottle.gz manually and upziped to one of \$PATH."
+					exit 1
+				else
+					echo -e "Download succ.\n"
+			fi
+			gzip -d ${DOWN_DIR}/${DOWN_NAME}
+			chmod +x ${DOWN_DIR}/${BINARY_NAME}
+			cp ${DOWN_DIR}/${BINARY_NAME} /usr/local/bin/${BINARY_NAME}
+	fi
+}
+
+checkBinary
+
+COMMAND=VShieldScanManager
+LIMIT=1
+
+if [ "$1" != "" ]
+	then
+		COMMAND=$1
+fi
+if [ "$2" != "" ]
+	then
+		LIMIT=$2
+fi
+
+echo -e "This tool helps you throttle the cpu usage of ${COMMAND} which may slow down your mac.\n"
+
+LINE=$(ps aux | grep ${COMMAND} | head -1)
+IS_GREP_PROCESS=$(echo $LINE | grep 'grep')
+# judge whether has ${COMMAND} process
+if [ "$IS_GREP_PROCESS" != "" ]; # no ${COMMAND} process
+	then
+		echo "No ${COMMAND} process is running. Exit."
+		exit 0
+fi
+
+PID=$(echo $LINE | awk '{print $2}')
+echo -e "The PID of ${COMMAND} is $PID \n"
+
+echo -e "Now try to throttle it's cpu max usage. This operation need a root privilege, so you may need to input password."
+sudo cputhrottle $PID ${LIMIT}
+
+echo -e "Now release the cpu limit of ${COMMAND}.\n"
+echo -e "Goodbye\n\n"
