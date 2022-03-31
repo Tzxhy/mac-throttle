@@ -27,10 +27,10 @@ checkBinary() {
 			fi
 			mkdir $DOWN_DIR
 
-			curl --connect-timeout 3 -s "http://www.willnolan.com/cputhrottle/cputhrottle.gz" --output ${DOWN_DIR}/${DOWN_NAME}
+			curl --connect-timeout 10 -s "https://raw.githubusercontent.com/Tzxhy/mac-throttle/master/cputhrottle.gz" --output ${DOWN_DIR}/${DOWN_NAME}
 			if [ $? != 0 ]
 				then
-					echo -e "Download failed.\nPlease download http://www.willnolan.com/cputhrottle/cputhrottle.gz manually and upziped to one of \$PATH."
+					echo -e "Download failed.\nPlease download http://www.willnolan.com/cputhrottle/cputhrottle.gz or https://raw.githubusercontent.com/Tzxhy/mac-throttle/master/cputhrottle.gz manually and upziped to one of \$PATH."
 					exit 1
 				else
 					echo -e "Download succ.\n"
